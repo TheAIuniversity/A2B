@@ -11,6 +11,8 @@
 import type {
   AgentRecord, Tier, TierConfig, PromotionCriteria, DemotionTrigger,
   AegisEvent, AegisEventHandler, CanaryProgress,
+} from "./types.js";
+import {
   DEFAULT_TIER_CONFIGS, DEFAULT_PROMOTION_CRITERIA, DEFAULT_DEMOTION_TRIGGERS,
 } from "./types.js";
 
