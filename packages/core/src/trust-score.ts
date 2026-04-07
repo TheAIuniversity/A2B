@@ -88,19 +88,27 @@ export function updateTrust(
 
   const adjustedPoints = basePoints * diffMultiplier;
 
-  // Update Beta distribution
+  // Update Beta distribution with EVE Online diminishing returns:
+  // - Gains are multiplied by (1 - currentScore): harder to gain when already high
+  // - Losses are multiplied by currentScore: larger penalty when trust is high
+  // This creates the desired asymmetry: easy to build, hard to maintain, costly to betray.
   let { alpha, beta: betaVal } = trust;
+  const currentScore = alpha / (alpha + betaVal);
+
   if (adjustedPoints > 0) {
-    alpha += adjustedPoints * K;
+    // EVE diminishing returns: gains shrink as score approaches 1.0
+    const diminishedGain = adjustedPoints * K * (1 - currentScore);
+    alpha += diminishedGain;
   } else if (adjustedPoints < 0) {
-    betaVal += Math.abs(adjustedPoints) * K;
+    // EVE betrayal penalty: losses are proportionally larger at high trust
+    const amplifiedLoss = Math.abs(adjustedPoints) * K * (0.5 + currentScore * 0.5);
+    betaVal += amplifiedLoss;
   }
 
   // Ensure minimums
   alpha = Math.max(1, alpha);
   betaVal = Math.max(1, betaVal);
 
-  // EVE Online diminishing returns for the score
   const rawScore = alpha / (alpha + betaVal);
 
   // Update Glicko-2 deviation (decreases with more data)
@@ -125,11 +133,17 @@ export function updateTrust(
 
 /**
  * Apply trust decay for inactive agents.
- * Trust erodes over time if agent isn't active.
+ * Trust score shifts TOWARD the prior (0.5) over time.
+ *
+ * MATH FIX (audit H-2): Previous version multiplied both alpha and beta
+ * by the same factor, which does NOT change the score (alpha/alpha+beta
+ * is unchanged when both are scaled equally). This version properly
+ * shifts the score toward the prior by adding to beta (for high-trust
+ * agents) or adding to alpha (for low-trust agents).
  *
  * @param trust - Current trust score
  * @param daysSinceLastTask - Days since last completed task
- * @param decayRate - Decay factor per day (default: 0.99)
+ * @param decayRate - How much to decay per day (default: 0.99)
  */
 export function decayTrust(
   trust: TrustScore,
@@ -138,13 +152,18 @@ export function decayTrust(
 ): TrustScore {
   if (daysSinceLastTask <= 1) return trust;
 
-  const factor = Math.pow(decayRate, daysSinceLastTask);
+  const decayStrength = 1 - Math.pow(decayRate, daysSinceLastTask);
+  // decayStrength: 0 at day 1, ~0.26 at day 30, ~0.60 at day 90
 
-  const alpha = Math.max(1, trust.alpha * factor);
-  const beta = Math.max(1, trust.beta * factor);
+  // Shift alpha and beta toward the prior (1, 1) which gives score 0.5
+  // High alpha (high trust) → alpha decreases toward 1
+  // High beta (low trust) → beta decreases toward 1
+  // Net effect: score drifts toward 0.5 over time
+  const alpha = Math.max(1, trust.alpha * (1 - decayStrength) + 1 * decayStrength);
+  const beta = Math.max(1, trust.beta * (1 - decayStrength) + 1 * decayStrength);
   const score = alpha / (alpha + beta);
 
-  // Deviation INCREASES with inactivity (more uncertain)
+  // Deviation INCREASES with inactivity (we become less certain)
   const deviation = Math.min(
     0.35,
     Math.sqrt(trust.deviation ** 2 + trust.volatility ** 2 * daysSinceLastTask),

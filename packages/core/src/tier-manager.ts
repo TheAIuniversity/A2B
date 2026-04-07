@@ -225,11 +225,14 @@ export class TierManager {
       return { shouldDemote: false, shouldWarn: false, reason: `Grace period (${Math.ceil(t.gracePeriodDays - daysSinceTierChange)}d remaining)` };
     }
 
-    const trustValue = agent.trust.score;
+    // AUDIT FIX H-3: Use lowerBound consistently for BOTH promotion and demotion.
+    // Previously promotion used lowerBound but demotion used raw score,
+    // making it harder to demote agents than it should be.
+    const trustValue = agent.trust.lowerBound;
     const errorRate = agent.totalTasks > 0 ? agent.totalErrors / agent.totalTasks : 0;
 
     if (trustValue < t.demotionThreshold) {
-      return { shouldDemote: true, shouldWarn: false, reason: `Trust ${trustValue.toFixed(2)} < ${t.demotionThreshold}` };
+      return { shouldDemote: true, shouldWarn: false, reason: `Trust lower bound ${trustValue.toFixed(2)} < ${t.demotionThreshold}` };
     }
 
     if (errorRate > t.maxErrorRate) {
@@ -237,7 +240,7 @@ export class TierManager {
     }
 
     if (trustValue < t.warningThreshold) {
-      return { shouldDemote: false, shouldWarn: true, reason: `Trust ${trustValue.toFixed(2)} approaching demotion threshold ${t.demotionThreshold}` };
+      return { shouldDemote: false, shouldWarn: true, reason: `Trust lower bound ${trustValue.toFixed(2)} approaching demotion threshold ${t.demotionThreshold}` };
     }
 
     return { shouldDemote: false, shouldWarn: false, reason: "OK" };
