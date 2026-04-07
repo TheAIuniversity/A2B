@@ -1,0 +1,16 @@
+{
+  "name": "@a2b/core",
+  "version": "0.1.0",
+  "description": "Core trust engine, tier management, and policy enforcement for A2B agent framework",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test src/**/*.test.ts"
+  },
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

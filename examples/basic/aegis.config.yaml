@@ -1,0 +1,122 @@
+# A2B Configuration
+# Copy this file and customize for your agent system
+
+version: "1.0"
+
+# ─── CEO Agent Settings ─────────────────────────────────────────────────────
+
+ceo:
+  heartbeat_interval: 300          # seconds (5 min)
+  monitoring_interval: 300         # seconds (5 min)
+  report_schedule: "0 9 * * *"     # daily at 9am
+  pid_weights:
+    proportional: 0.3
+    integral: 0.5
+    derivative: 0.2
+
+# ─── Trust Engine ────────────────────────────────────────────────────────────
+
+trust:
+  decay_rate: 0.99                 # per day of inactivity
+  inactivity_demotion_days: 90     # auto-demote after 90 days idle
+
+# ─── Tier Configuration ─────────────────────────────────────────────────────
+
+tiers:
+  0:
+    name: "Onboarding"
+    max_concurrent: 1
+    review_rate: 1.0               # 100% reviewed
+    budget_per_task: 0.05
+    budget_per_day: 1.00
+  1:
+    name: "Junior"
+    max_concurrent: 1
+    review_rate: 1.0
+    budget_per_task: 0.10
+    budget_per_day: 2.00
+  2:
+    name: "Senior"
+    max_concurrent: 3
+    review_rate: 0.20              # 20% spot-check
+    budget_per_task: 0.30
+    budget_per_day: 10.00
+  3:
+    name: "Autonomous"
+    max_concurrent: -1             # unlimited
+    review_rate: 0.0               # exception-only
+    budget_per_task: 1.00
+    budget_per_day: 30.00
+
+# ─── Promotion Criteria ─────────────────────────────────────────────────────
+
+promotion:
+  to_tier_1:
+    min_tasks: 50
+    min_trust: 0.65
+    max_error_rate: 0.08
+    min_days: 7
+    peer_approvals: 0
+  to_tier_2:
+    min_tasks: 150
+    min_trust: 0.78
+    max_error_rate: 0.04
+    min_days: 21
+    peer_approvals: 1
+    canary_weeks: 2
+  to_tier_3:
+    min_tasks: 300
+    min_trust: 0.88
+    max_error_rate: 0.02
+    min_days: 30
+    peer_approvals: 2
+    canary_weeks: 4
+
+# ─── Demotion Triggers ──────────────────────────────────────────────────────
+
+demotion:
+  from_tier_3:
+    warning: 0.80
+    threshold: 0.75
+    max_error_rate: 0.03
+    grace_days: 7
+  from_tier_2:
+    warning: 0.65
+    threshold: 0.55
+    max_error_rate: 0.06
+    grace_days: 7
+
+# ─── Gaming Detection ───────────────────────────────────────────────────────
+
+gaming:
+  enabled: true
+  difficulty_avoidance_threshold: 0.7
+  canary_gap_threshold: 0.2
+  collusion_correlation_threshold: 0.95
+  canary_injection_rate: 0.05      # 1 in 20 tasks
+
+# ─── Onboarding Pipeline ────────────────────────────────────────────────────
+
+onboarding:
+  shadow_duration_hours: 48
+  canary_stages: [20, 50, 80, 100] # percentage progression
+  validation_tests: 6
+  calibration_interval: 10         # every N tasks
+  regression_threshold: 0.80       # 80% pass rate required
+
+# ─── Storage ─────────────────────────────────────────────────────────────────
+
+storage:
+  type: "file"                     # "file" or "memory"
+  path: "./data/a2b"
+
+# ─── Notifications ───────────────────────────────────────────────────────────
+
+notifications:
+  # Uncomment and configure for your setup:
+  # slack:
+  #   webhook: "${SLACK_WEBHOOK_URL}"
+  #   channel: "#agent-ops"
+  # email:
+  #   to: "ceo@company.com"
+  #   from: "a2b@company.com"

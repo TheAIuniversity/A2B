@@ -1,0 +1,18 @@
+{
+  "name": "@a2b/onboarding",
+  "version": "0.1.0",
+  "description": "7-phase agent onboarding pipeline with shadow mode, canary rollout, and auto-calibration",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test src/**/*.test.ts"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@a2b/core": "0.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

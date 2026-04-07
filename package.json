@@ -1,0 +1,38 @@
+{
+  "name": "a2b-agent-framework",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A2B — Agent to Business: Adaptive trust, autonomy & self-development framework for multi-agent AI systems",
+  "workspaces": [
+    "packages/core",
+    "packages/ceo",
+    "packages/onboarding",
+    "packages/adapters/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "eslint packages/ --ext .ts",
+    "example:basic": "cd examples/basic && npx tsx src/index.ts"
+  },
+  "keywords": [
+    "ai-agents",
+    "multi-agent",
+    "trust",
+    "autonomy",
+    "governance",
+    "framework",
+    "llm",
+    "agent-framework"
+  ],
+  "author": "The AI University <hello@theaiuniversity.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheAIuniversity/A2B.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
